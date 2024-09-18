@@ -3,6 +3,10 @@
 # @see https://eliasdh.com #
 # @since 18/09/2024        #
 ############################
+# This script will create a kubernetes cluster and deploy a:
+# Apllication: https://github.com/streamaserver/streama
+# Database: MySQL
+# Storage: Rook volume
 
 # UI variables
 reset="\e[0m"                                                               # Reset
