@@ -17,7 +17,16 @@ gcloud init # Initialize gcloud
 
 sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin # Install gcloud package for kubernetes
 
+gcloud services enable container.googleapis.com # Enable the container.googleapis.com service
+gcloud services enable compute.googleapis.com # Enable the compute.googleapis.com service
+
+gcloud container clusters create $cluster_name --region=$zone --min-nodes=$min_nodes --max-nodes=$max_nodes --enable-ip-alias --machine-type=n1-standard-4 --disk-size=40GB --enable-autoscaling # Create a cluster
+
+gcloud container clusters get-credentials $cluster_name --region=$zone # Get the credentials of a cluster
+
 gcloud container clusters delete $cluster_name --region=$zone -q # Delete a cluster
+
+gcloud compute disks list --filter="zone:$zone" --format="value(NAME)" | xargs -I {} gcloud compute disks delete {} --zone=$zone --quiet # Delete all disks in a zone
 ```
 
 - kubernetes

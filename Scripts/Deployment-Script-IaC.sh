@@ -50,6 +50,7 @@ function create_cluster() { # Step 2
         --max-nodes=$max_nodes \
         --enable-ip-alias \
         --machine-type=n1-standard-4 \
+        --disk-size=20GB \
         --enable-autoscaling > ./deployment-script.log 2>&1
     local EXIT_CODE=$?
 
