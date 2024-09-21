@@ -105,11 +105,11 @@ spec:
         ports:
         - containerPort: 3306
         volumeMounts:
-        - name: mysql-storage
-          mountPath: /var/lib/mysql
+        - name: mysql-data
+          mountPath: /var/lib/mysqljellyfin
   volumeClaimTemplates:
   - metadata:
-      name: mysql-storage
+      name: mysql-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:

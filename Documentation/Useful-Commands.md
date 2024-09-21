@@ -12,40 +12,42 @@
 ## 📝Commands
 
 - Gcloud
-    ```bash
-    gcloud init # Initialize gcloud
+```bash
+gcloud init # Initialize gcloud
 
-    sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin # Install gcloud package for kubernetes
+sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin # Install gcloud package for kubernetes
 
-    gcloud container clusters delete $cluster_name --region=$zone -q # Delete a cluster
-    ```
+gcloud container clusters delete $cluster_name --region=$zone -q # Delete a cluster
+```
 
 - kubernetes
-    ```bash
-    kubectl top nodes # Get the usage of all nodes
+```bash
+kubectl top nodes # Get the usage of all nodes
 
-    kubectl top pods --all-namespaces # Get the usage of all pods
+kubectl top pods --all-namespaces # Get the usage of all pods
 
-    kubectl get all # Get all resources
+kubectl get all # Get all resources
 
-    kubectl get nodes # Get all nodes
+kubectl get nodes # Get all nodes
 
-    kubectl get pods # Get all pods
+kubectl get pods # Get all pods
 
-    kubectl get deployments # Get all deployments
+kubectl get deployments # Get all deployments
 
-    kubectl get services # Get all services
+kubectl get services # Get all services
 
-    kubectl get pvc # Get all persistent volume claims
+kubectl get pvc # Get all persistent volume claims
 
-    kubectl apply -f ./apllication.yaml # Apply a yaml file
+kubectl get pv # Get all persistent volumes
 
-    kubectl delete -f ./apllication.yaml # Delete a yaml file
+kubectl apply -f ./apllication.yaml # Apply a yaml file
 
-    kubectl delete pvc <pvc-name> # Delete a persistent volume claim
+kubectl delete -f ./apllication.yaml # Delete a yaml file
 
-    kubectl logs <pod-name> # Get the logs of a pod
-    ```
+kubectl delete pvc <pvc-name> # Delete a persistent volume claim
+
+kubectl logs <pod-name> # Get the logs of a pod
+```
 
 ## 🔗Links
 - 👯 Web hosting company [EliasDH.com](https://eliasdh.com).
