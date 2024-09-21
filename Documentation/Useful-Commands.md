@@ -56,6 +56,8 @@ kubectl delete -f ./apllication.yaml # Delete a yaml file
 kubectl delete pvc <pvc-name> # Delete a persistent volume claim
 
 kubectl logs <pod-name> # Get the logs of a pod
+
+kubectl cp /home/elias/disney_bitconnect.mp4 default/jellyfin-79747bf6c7-wx7nj:/media/disney_bitconnect.mp4 # Copy a file to a pod in a container
 ```
 
 ## 🔗Links
