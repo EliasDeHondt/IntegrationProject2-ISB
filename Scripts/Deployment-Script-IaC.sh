@@ -15,7 +15,8 @@ green="\e[0;32m"                                                            # Gr
 
 cluster_name="cluster-1"
 zone="us-central1-c"
-num_nodes=3
+min_nodes=3
+max_nodes=5
 
 # Functie: Error afhandeling.
 function error_exit() {
@@ -28,6 +29,11 @@ function success() {
     echo -e "\n*\n* ${green}$1${reset}\n*"
 }
 
+# Functie: Validate the external resources.
+function validate_external_resources() { # Step 0
+    if [ ! -f ./application.yaml ]; then error_exit "The application.yaml file is missing."; fi
+}
+
 # Functie: Enable the required APIs.
 function enable_apis() { # Step 1
     gcloud services enable container.googleapis.com > ./deployment-script.log 2>&1
@@ -38,7 +44,13 @@ function enable_apis() { # Step 1
 
 # Functie: Create the kubernetes cluster.
 function create_cluster() { # Step 2
-    gcloud container clusters create $cluster_name --region $zone --num-nodes $num_nodes --enable-ip-alias > ./deployment-script.log 2>&1
+    gcloud container clusters create $cluster_name \
+        --region=$zone \
+        --min-nodes=$min_nodes \
+        --max-nodes=$max_nodes \
+        --enable-ip-alias \
+        --machine-type=n1-standard-4 \
+        --enable-autoscaling > ./deployment-script.log 2>&1
     local EXIT_CODE=$?
 
     if [ $EXIT_CODE -eq 0 ]; then success "Cluster created successfully."; else error_exit "Failed to create the cluster."; fi
@@ -46,19 +58,27 @@ function create_cluster() { # Step 2
 
 # Functie: Get authentication credentials for the cluster.
 function get_credentials() { # Step 3
-    gcloud container clusters get-credentials $cluster_name --region $zone > ./deployment-script.log 2>&1
+    gcloud container clusters get-credentials $cluster_name --region=$zone > ./deployment-script.log 2>&1
     local EXIT_CODE=$?
 
     if [ $EXIT_CODE -eq 0 ]; then success "Credentials retrieved successfully."; else error_exit "Failed to retrieve the credentials."; fi
 }
 
+# Functie: Deploy the application.
+function deploy_application() { # Step 4
+    kubectl apply -f ./apllication.yaml > ./deployment-script.log 2>&1
+    local EXIT_CODE=$?
 
+    if [ $EXIT_CODE -eq 0 ]; then success "Application deployed successfully."; else error_exit "Failed to deploy the application."; fi
+}
 
 # Start of the script.
 function main() {
+    validate_external_resources # Step 0
     enable_apis # Step 1
     create_cluster # Step 2
     get_credentials # Step 3
+    deploy_application # Step 4
 }
 
-main
+main # Start the script.

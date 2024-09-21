@@ -3,72 +3,85 @@
 # @see https://eliasdh.com #
 # @since 18/09/2024        #
 ############################
-# This yaml will deploy a (In Google cloud -> kubernetes cluster)
-# Apllication: https://github.com/streamaserver/streama
+# This yaml will deploy a Jellyfin application with a MySQL database
+# Application: Jellyfin
 # Database: MySQL
-# Storage: Rook volume
+# Storage: Persistent Volume Claims
 
 ---
+# Config Storage (Jellyfin-WebApp)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Media Storage (Jellyfin-WebApp)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-media-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+# Application Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: streama
-  labels:
-    app: streama
+  name: jellyfin
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: streama
+      app: jellyfin
   template:
     metadata:
       labels:
-        app: streama
+        app: jellyfin
     spec:
       containers:
-      - name: streama
-        image: streamaserver/streama
-        ports:
-        - containerPort: 8080
-        env:
-        - name: MYSQL_HOST
-          value: mysql
-        - name: MYSQL_PORT
-          value: "3306"
-        - name: MYSQL_DATABASE
-          value: streama
-        - name: MYSQL_USER
-          value: root
-        - name: MYSQL_PASSWORD
-          value: password
-        - name: MYSQL_ALLOW_EMPTY_PASSWORD
-          value: "yes"
-        - name: MYSQL_ROOT_PASSWORD
-          value: password
-        - name: MYSQL_ROOT_USER
-          value: root
+        - name: jellyfin
+          image: jellyfin/jellyfin:latest
+          ports:
+            - containerPort: 8096
+              name: jellyfin-port
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          volumeMounts:
+            - name: jellyfin-config
+              mountPath: /config
+            - name: jellyfin-media
+              mountPath: /media
+      volumes:
+        - name: jellyfin-config
+          persistentVolumeClaim:
+            claimName: jellyfin-config-pvc
+        - name: jellyfin-media
+          persistentVolumeClaim:
+            claimName: jellyfin-media-pvc
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: streama
-spec:
-  selector:
-    app: streama
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-  type: LoadBalancer
----
+# MySQL StatefulSet for Master-Slave Configuration
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql
-  labels:
-    app: mysql
 spec:
-  replicas: 1
+  serviceName: "mysql"
+  replicas: 3
   selector:
     matchLabels:
       app: mysql
@@ -80,75 +93,68 @@ spec:
       containers:
       - name: mysql
         image: mysql:5.7
-        ports:
-        - containerPort: 3306
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: password
+          value: jellyfin_root_password
         - name: MYSQL_DATABASE
-          value: streama
+          value: jellyfin
+        - name: MYSQL_USER
+          value: jellyfin
+        - name: MYSQL_PASSWORD
+          value: jellyfin_password
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
 ---
+# Application Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8096
+      protocol: TCP
+  selector:
+    app: jellyfin
+---
+# MySQL Headless Service
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql
 spec:
+  clusterIP: None
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
   selector:
     app: mysql
-  ports:
-    - protocol: TCP
-      port: 3306
-      targetPort: 3306
-  type: ClusterIP
 ---
-apiVersion: rook.io/v1
-kind: Pool
+# Horizontal Pod Autoscaler (HPA)
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
 metadata:
-  name: replicapool
-  namespace: rook-ceph
+  name: jellyfin-hpa
 spec:
-  replicated:
-    size: 3
----
-apiVersion: rook.io/v1
-kind: Filesystem
-metadata:
-  name: myfs
-  namespace: rook-ceph
-spec:
-  metadataPool:
-    replicated:
-      size: 3
-  dataPools:
-    - replicated:
-        size: 3
-  metadataServer:
-    activeCount: 1
-    activeStandby: true
----
-apiVersion: rook.io/v1
-kind: Volume
-metadata:
-  name: myvol
-  namespace: rook-ceph
-spec:
-  volume:
-    type: filesystem
-    filesystem:
-      name: myfs
-  persistentVolumeClaim:
-    claimName: myclaim
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: myclaim
-  namespace: default
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: rook-ceph-block
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: jellyfin
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
 ---
