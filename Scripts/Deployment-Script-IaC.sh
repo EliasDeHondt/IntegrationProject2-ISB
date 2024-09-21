@@ -62,12 +62,3 @@ function main() {
 }
 
 main
-
-# kubectl get nodes
-# kubectl get pods
-# kubectl get deployments
-# kubectl get services
-
-# sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
-
-# gcloud container clusters delete $cluster_name --region $zone -q
