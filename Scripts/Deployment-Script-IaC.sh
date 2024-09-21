@@ -32,6 +32,7 @@ function success() {
 # Functie: Validate the external resources.
 function validate_external_resources() { # Step 0
     if [ ! -f ./application.yaml ]; then error_exit "The application.yaml file is missing."; fi
+    if [ ! -f ./disney_bitconnect.mp4 ]; then error_exit "The disney_bitconnect.mp4 file is missing."; fi
 }
 
 # Functie: Enable the required APIs.
@@ -73,6 +74,20 @@ function deploy_application() { # Step 4
     if [ $EXIT_CODE -eq 0 ]; then success "Application deployed successfully."; else error_exit "Failed to deploy the application."; fi
 }
 
+# Functie: Copy test data to volume.
+function copy_test_data() { # Step 5
+    local POD_NAME=$(kubectl get pods -l app=jellyfin -o jsonpath="{.items[0].metadata.name}")
+    kubectl cp ./disney_bitconnect.mp4 default/$POD_NAME:/media/disney_bitconnect.mp4
+    local EXIT_CODE=$?
+
+    if [ $EXIT_CODE -eq 0 ]; then success "Test data copied successfully."; else error_exit "Failed to copy the test data."; fi
+}
+
+# Functie: Set up SSH certificates for domain (For the load balancer external IP).
+function setup_ssh_certificates() { # Step 6
+    
+}
+
 # Start of the script.
 function main() {
     validate_external_resources # Step 0
@@ -80,6 +95,8 @@ function main() {
     create_cluster # Step 2
     get_credentials # Step 3
     deploy_application # Step 4
+    copy_test_data # Step 5
+    setup_ssh_certificates # Step 6
 }
 
 main # Start the script.
