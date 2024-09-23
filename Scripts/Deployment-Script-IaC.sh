@@ -85,7 +85,10 @@ function copy_test_data() { # Step 5
 
 # Functie: Set up SSL certificates for domain (For the load balancer external IP).
 function setup_ssl_certificates() { # Step 6
-
+  # Get the IP address of the load balancer
+  LOAD_BALANCER_IP=$(gcloud compute forwarding-rules describe $FORWARDING_RULE_NAME --global --format="get(IPAddress)")
+  print_green "Load balancer IP: $LOAD_BALANCER_IP"
+  ./ddns.sh "$LOAD_BALANCER_IP"
 }
 
 # Start of the script.
@@ -100,4 +103,3 @@ function main() {
 }
 
 main # Start the script.
-

@@ -91,30 +91,30 @@ spec:
         app: mysql
     spec:
       containers:
-      - name: mysql
-        image: mysql:5.7
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: jellyfin_root_password
-        - name: MYSQL_DATABASE
-          value: jellyfin
-        - name: MYSQL_USER
-          value: jellyfin
-        - name: MYSQL_PASSWORD
-          value: jellyfin_password
-        ports:
-        - containerPort: 3306
-        volumeMounts:
-        - name: mysql-data
-          mountPath: /var/lib/mysqljellyfin
+        - name: mysql
+          image: mysql:5.7
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: jellyfin_root_password
+            - name: MYSQL_DATABASE
+              value: jellyfin
+            - name: MYSQL_USER
+              value: jellyfin
+            - name: MYSQL_PASSWORD
+              value: jellyfin_password
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysqljellyfin
   volumeClaimTemplates:
-  - metadata:
-      name: mysql-data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Gi
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
 ---
 # Application Service
 apiVersion: v1
@@ -163,3 +163,15 @@ spec:
   maxReplicas: 10
   targetCPUUtilizationPercentage: 70
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jellyfin-cert
+spec:
+  secretName: jellyfin-cert
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - nepfliks.kobelabs.online
+
