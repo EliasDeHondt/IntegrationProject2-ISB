@@ -4,9 +4,9 @@
 # @since 18/09/2024        #
 ############################
 # This script will create a kubernetes cluster and deploy a:
-# Apllication: https://github.com/streamaserver/streama
+# Application: Jellyfin
 # Database: MySQL
-# Storage: Rook volume
+# Storage: Persistent Volume Claims
 
 # UI variables
 reset="\e[0m"                                                               # Reset
