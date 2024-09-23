@@ -163,15 +163,4 @@ spec:
   maxReplicas: 10
   targetCPUUtilizationPercentage: 70
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: jellyfin-cert
-spec:
-  secretName: jellyfin-cert
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-  dnsNames:
-    - nepfliks.kobelabs.online
 
