@@ -20,7 +20,7 @@ sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin # Install gcloud pa
 gcloud services enable container.googleapis.com # Enable the container.googleapis.com service
 gcloud services enable compute.googleapis.com # Enable the compute.googleapis.com service
 
-gcloud container clusters create $cluster_name --region=$zone --min-nodes=$min_nodes --max-nodes=$max_nodes --enable-ip-alias --machine-type=n1-standard-4 --disk-size=40GB --enable-autoscaling # Create a cluster
+gcloud container clusters create $cluster_name --region=$zone --min-nodes=$min_nodes --max-nodes=$max_nodes --enable-ip-alias --machine-type=n1-standard-4 --disk-size=20GB --enable-autoscaling # Create a cluster
 
 gcloud container clusters get-credentials $cluster_name --region=$zone # Get the credentials of a cluster
 
@@ -49,9 +49,9 @@ kubectl get pvc # Get all persistent volume claims
 
 kubectl get pv # Get all persistent volumes
 
-kubectl apply -f ./apllication.yaml # Apply a yaml file
+kubectl apply -f https://github.com/EliasDeHondt/IntegrationProject2/blob/main/Scripts/apllication.yaml # Apply a yaml file
 
-kubectl delete -f ./apllication.yaml # Delete a yaml file
+kubectl delete -f https://github.com/EliasDeHondt/IntegrationProject2/blob/main/Scripts/apllication.yaml # Delete a yaml file
 
 kubectl delete pvc <pvc-name> # Delete a persistent volume claim
 
