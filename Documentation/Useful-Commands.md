@@ -49,9 +49,9 @@ kubectl get pvc # Get all persistent volume claims
 
 kubectl get pv # Get all persistent volumes
 
-kubectl apply -f https://github.com/EliasDeHondt/IntegrationProject2/blob/main/Scripts/apllication.yaml # Apply a yaml file
+kubectl apply -f ./apllication.yaml # Apply a yaml file
 
-kubectl delete -f https://github.com/EliasDeHondt/IntegrationProject2/blob/main/Scripts/apllication.yaml # Delete a yaml file
+kubectl delete -f ./apllication.yaml # Delete a yaml file
 
 kubectl delete pvc <pvc-name> # Delete a persistent volume claim
 
