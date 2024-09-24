@@ -26,26 +26,6 @@ function success() {
   echo -e "\n*\n* ${green}$1${reset}\n*"
 }
 
-# Spinner function
-function spinner() {
-  local message=$1
-  local pid=$2
-  local delay=0.1
-  local spinstr='|/-\'
-
-  echo
-  echo "$message" # Display the message
-  echo            # Newline
-  while kill -0 "$pid" 2>/dev/null; do
-    local temp=${spinstr#?}
-    printf " [%c]  " "$spinstr"
-    spinstr=$temp${spinstr%"$temp"}
-    sleep $delay
-    printf "\b\b\b\b\b\b"
-  done
-  printf "    \b\b\b\b"
-}
-
 # Functie: Validate the external resources.
 function validate_external_resources() { # Step 0
   if [ ! -f ./application.yaml ]; then error_exit "The application.yaml file is missing."; fi
@@ -67,7 +47,7 @@ function check_gcloud_installation() { # Step 1
 
 # Functie: Enable the required APIs.
 function enable_apis() { # Step 2
-  gcloud services enable container.googleapis.com >./deployment-script.log 2>&1
+  gcloud services enable container.googleapis.com gkehub.googleapis.com containeranalysis.googleapis.com >./deployment-script.log 2>&1
 
   local EXIT_CODE=$?
 
@@ -91,7 +71,7 @@ function create_cluster() {
     --enable-ip-alias \
     --machine-type=n1-standard-4 \
     --disk-size=20GB \
-    --enable-autoscaling >./deployment-script.log 2>&1 &
+    --enable-autoscaling >./deployment-script.log 2>&1
 
   local EXIT_CODE=$?
 
@@ -112,11 +92,14 @@ function get_credentials() { # Step 4
 
 # Functie: Deploy the application.
 function deploy_application() { # Step 5
-  kubectl apply -f ./application.yaml >./deployment-script.log 2>&1
+  kubectl apply -f ./application.yaml
+  local error_count=$?
+  kubectl apply -f ./managed-cert.yaml
+  local error_count=$(($error_count + $?))
+  kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/gke-managed-certs/refs/heads/master/deploy/managedcertificates-crd.yaml
+  local error_count=$(($error_count + $?))
 
-  local EXIT_CODE=$?
-
-  if [ $EXIT_CODE -eq 0 ]; then success "Application deployed successfully."; else error_exit "Failed to deploy the application."; fi
+  if [ $error_count -eq 0 ]; then success "Application deployed successfully."; else error_exit "Failed to deploy the application."; fi
 }
 
 # Functie: Copy test data to volume.
@@ -149,11 +132,23 @@ function copy_test_data() { # Step 6
 }
 
 # Functie: Set up SSL certificates for domain (For the load balancer external IP).
-function setup_ssl_certificates() { # Step 7
-  # Get the IP address of the load balancer
+# Get the IP address of the load balancer
+function setup_ssl_dns_certificates() { # Step 7
   LOAD_BALANCER_IP=$(gcloud compute forwarding-rules list --format="value(IPAddress)" --limit=1)
   success "Load balancer IP: $LOAD_BALANCER_IP"
   ./ddns.sh "$LOAD_BALANCER_IP"
+
+  while true; do
+    STATUS=$(kubectl get managedcertificate jellyfin-managed-cert -o jsonpath='{.status.certificateStatus}')
+
+    if [ "$STATUS" == "Active" ]; then
+      success "SSL Certificate is Active!"
+      break
+    else
+      echo "SSL Certificate status: $STATUS. Waiting for it to become Active..."
+      sleep 10 # Wait for 10 seconds before checking again
+    fi
+  done
 }
 
 # Start of the script.
@@ -165,7 +160,7 @@ function main() {
   get_credentials             # Step 4
   deploy_application          # Step 5
   copy_test_data              # Step 6
-  setup_ssl_certificates      # Step 7
+  setup_ssl_dns_certificates  # Step 7
 }
 
 main # Start the script.

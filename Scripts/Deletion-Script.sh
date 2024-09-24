@@ -41,10 +41,37 @@ function get_credentials() { # Step 4
   if [ $EXIT_CODE -eq 0 ]; then success "Credentials retrieved successfully."; else error_exit "Failed to retrieve the credentials."; fi
 }
 
+function delete_managed_ssl() {
+  kubectl delete managedcertificate jellyfin-managed-cert
+
+  local EXIT_CODE=$?
+
+  if [ $EXIT_CODE -eq 0 ]; then success "Managed ssl deleted successfully."; else error_exit "Failed to delete managed ssl"; fi
+}
+
+function delete_loadbalancer() {
+  kubectl delete svc jellyfin
+
+  local EXIT_CODE=$?
+
+  if [ $EXIT_CODE -eq 0 ]; then success "Loadbalancer deleted successfully."; else error_exit "Failed to delete loadbalancer"; fi
+}
+
+function delete_persistent_volumes() {
+  kubectl delete pvc jellyfin-config-pvc jellyfin-media-pvc
+  local EXIT_CODE=$?
+  if [ $EXIT_CODE -eq 0 ]; then success "Persistent volume deleted successfully."; else error_exit "Failed to delete persistent volume"; fi
+}
+
 function delete_deployment() {
   kubectl delete -f ./application.yaml
+  local error_count=$?
+  kubectl delete -f ./managed-cert.yaml
+  local error_count=$(($error_count + $?))
+  kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/gke-managed-certs/main/deploy/managedcertificates-crd.yaml
+  local error_count=$(($error_count + $?))
 
-  if [ $? -eq 0 ]; then success "Deployment deleted successfully."; else error_exit "Failed to delete the deployment."; fi
+  if [ $error_count -eq 0 ]; then success "Application deleted successfully."; else error_exit "Failed to delete the application."; fi
 }
 
 function delete_cluster() {
