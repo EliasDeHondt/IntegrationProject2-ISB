@@ -190,24 +190,39 @@ kubectl cp /home/elias/disney_bitconnect.mp4 default/jellyfin-79747bf6c7-wx7nj:/
 git clone https://github.com/EliasDeHondt/kubernetes-dashboard.git
 ```
 
+- Install Cert-Manager
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+```
+
 - Deploy the Kubernetes Dashboard
 ```bash
-kubectl apply -f ./kubernetes-dashboard
-# To delete the Kubernetes Dashboard
-kubectl delete -f ./kubernetes-dashboard
+kubectl apply -f ./kubernetes-dashboard/Scripts
+# Please modify the necessary configuration files to switch to your domain name.
 ```
 
 - Access the Kubernetes Dashboard
 ```bash
-kubectl -n kubernetes-dashboard get svc # Get the service of the Kubernetes Dashboard
-# Open the in
+kubectl get services -o wide -n ingress-nginx
+# Copy the external IP address and put it in your A of AAAA record for your domain name.
 ```
 
 - Access the Kubernetes Dashboard Token
 ```bash
-kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+sudo chmod +x ./kubernetes-dashboard/Scripts/get-token.sh
+sudo ./kubernetes-dashboard/Scripts/get-token.sh
 # Copy the token
 # Paste the token in the Kubernetes Dashboard
+```
+
+- Delete all configurations
+```bash
+# To delete the Kubernetes Dashboard
+kubectl delete -f ./kubernetes-dashboard/Scripts
+sudo rm -r ./kubernetes-dashboard
+kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 ```
 
 ## 🔗Links
