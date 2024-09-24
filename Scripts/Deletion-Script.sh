@@ -84,8 +84,8 @@ function main() {
   validate_external_resources # Step 0
   check_gcloud_installation   # Step 1
   get_credentials             # Step 2
-  delete_deployment
-  delete_cluster
+  delete_deployment           # Step 3
+  delete_cluster              # Step 4
 }
 
 main # Start the script.
