@@ -69,11 +69,6 @@ function check_gcloud_installation() { # Step 1
 function enable_apis() { # Step 2
   gcloud services enable container.googleapis.com >./deployment-script.log 2>&1
 
-  # add a spinner while loading
-  local CLUSTER_CREATION_PID=$!
-  spinner "enabling APIs" $CLUSTER_CREATION_PID
-  wait $CLUSTER_CREATION_PID
-
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then success "APIs enabled successfully."; else error_exit "Failed to enable the APIs."; fi
@@ -98,11 +93,6 @@ function create_cluster() {
     --disk-size=20GB \
     --enable-autoscaling >./deployment-script.log 2>&1 &
 
-  # add a spinner while loading
-  local CLUSTER_CREATION_PID=$!
-  spinner "Creating the kubernetes cluster " $CLUSTER_CREATION_PID
-  wait $CLUSTER_CREATION_PID
-
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then
@@ -124,11 +114,6 @@ function get_credentials() { # Step 4
 function deploy_application() { # Step 5
   kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.9.1/cert-manager.yaml >./deployment-script.log 2>&1
   kubectl apply -f ./application.yaml >./deployment-script.log 2>&1
-
-  # add a spinner while loading
-  local CLUSTER_CREATION_PID=$!
-  spinner "Deploying application " $CLUSTER_CREATION_PID
-  wait $CLUSTER_CREATION_PID
 
   local EXIT_CODE=$?
 
@@ -154,11 +139,6 @@ function copy_test_data() { # Step 6
 
   # Copy the media files to the Jellyfin pod
   kubectl cp ../Media/ default/$POD_NAME:/media/
-
-  # add a spinner while loading
-  local CLUSTER_CREATION_PID=$!
-  spinner "Copying test data " $CLUSTER_CREATION_PID
-  wait $CLUSTER_CREATION_PID
 
   local EXIT_CODE=$?
 
