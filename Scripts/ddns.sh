@@ -1,5 +1,4 @@
 #!/bin/bash
-## change to "bin/sh" when necessary
 
 source ./config.sh
 
@@ -65,7 +64,7 @@ update=$(curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$zone_iden
   -H "X-Auth-Email: $auth_email" \
   -H "$auth_header $auth_key" \
   -H "Content-Type: application/json" \
-  --data "{\"type\":\"A\",\"name\":\"$record_name\",\"content\":\"$ip\",\"ttl\":\"$ttl\",\"proxied\":${proxy}}")
+  --data "{\"type\":\"A\",\"name\":\"$record_name\",\"content\":\"$ip\",\"ttl\":$ttl,\"proxied\":${proxy}}")
 
 ###########################################
 ## Check if the update was successful

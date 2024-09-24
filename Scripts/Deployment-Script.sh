@@ -13,10 +13,7 @@ reset="\e[0m"    # Reset
 red="\e[0;31m"   # Red
 green="\e[0;32m" # Green
 
-cluster_name="cluster-1"
-zone="us-central1-c"
-min_nodes=3
-max_nodes=5
+source ./config.sh
 
 # Functie: Error afhandeling.
 function error_exit() {
@@ -27,6 +24,21 @@ function error_exit() {
 # Functie: Succes afhandeling.
 function success() {
   echo -e "\n*\n* ${green}$1${reset}\n*"
+}
+
+# Spinner function
+function spinner() {
+  local pid=$1
+  local delay=0.1
+  local spinstr='|/-\'
+  while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+    local temp=${spinstr#?}
+    printf " [%c]  " "$spinstr"
+    spinstr=$temp${spinstr%"$temp"}
+    sleep $delay
+    printf "\b\b\b\b\b\b"
+  done
+  printf "    \b\b\b\b"
 }
 
 # Functie: Validate the external resources.
@@ -64,7 +76,8 @@ function create_cluster() {
     return 0
   fi
 
-  # If the cluster does not exist, proceed with creation
+  # Start cluster creation in the background
+  echo "Creating the cluster..."
   gcloud container clusters create "$cluster_name" \
     --region="$zone" \
     --min-nodes="$min_nodes" \
@@ -72,12 +85,20 @@ function create_cluster() {
     --enable-ip-alias \
     --machine-type=n1-standard-4 \
     --disk-size=20GB \
-    --enable-autoscaling >./deployment-script.log 2>&1
+    --enable-autoscaling >./deployment-script.log 2>&1 &
 
+  # Get the process ID of the cluster creation
+  local CLUSTER_CREATION_PID=$!
+
+  # Run the spinner while the cluster is being created
+  spinner $CLUSTER_CREATION_PID
+
+  # Wait for the process to complete
+  wait $CLUSTER_CREATION_PID
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then
-    echo "Cluster created successfully."
+    success "Cluster created successfully."
   else
     error_exit "Failed to create the cluster."
   fi
@@ -101,11 +122,30 @@ function deploy_application() { # Step 5
 
 # Functie: Copy test data to volume.
 function copy_test_data() { # Step 6
-  local POD_NAME=$(kubectl get pods -l app=jellyfin -o jsonpath="{.items[0].metadata.name}")
+  # Wait until the pod is running
+  echo "Waiting for Jellyfin pod to be ready..."
+
+  while true; do
+    POD_NAME=$(kubectl get pods -l app=jellyfin -o jsonpath="{.items[0].metadata.name}" --field-selector=status.phase=Running 2>/dev/null)
+
+    if [ -n "$POD_NAME" ]; then
+      echo "Jellyfin pod is running: $POD_NAME"
+      break
+    else
+      echo "Pod not ready, retrying in 5 seconds..."
+      sleep 5
+    fi
+  done
+
+  # Copy the media files to the Jellyfin pod
   kubectl cp ../Media/ default/$POD_NAME:/media/
   local EXIT_CODE=$?
 
-  if [ $EXIT_CODE -eq 0 ]; then success "Test data copied successfully."; else error_exit "Failed to copy the test data."; fi
+  if [ $EXIT_CODE -eq 0 ]; then
+    success "Test data copied successfully."
+  else
+    error_exit "Failed to copy the test data."
+  fi
 }
 
 # Functie: Set up SSL certificates for domain (For the load balancer external IP).
