@@ -134,13 +134,13 @@ gcloud services enable container.googleapis.com # Enable the container.googleapi
 
 gcloud services enable compute.googleapis.com # Enable the compute.googleapis.com service
 
-gcloud container clusters create $cluster_name --region=$zone --min-nodes=$min_nodes --max-nodes=$max_nodes --enable-ip-alias --machine-type=n1-standard-4 --disk-size=20GB --enable-autoscaling # Create a cluster
+gcloud container clusters create cluster-1 --region=us-central1-c --min-nodes=1 --max-nodes=5 --enable-ip-alias --machine-type=n1-standard-4 --disk-size=20GB --enable-autoscaling # Create a cluster
 
-gcloud container clusters get-credentials $cluster_name --region=$zone # Get the credentials of a cluster
+gcloud container clusters get-credentials cluster-1 --region=us-central1-c # Get the credentials of a cluster
 
-gcloud container clusters delete $cluster_name --region=$zone -q # Delete a cluster
+gcloud container clusters delete cluster-1 --region=us-central1-c -q # Delete a cluster
 
-gcloud compute disks list --filter="zone:$zone" --format="value(NAME)" | xargs -I {} gcloud compute disks delete {} --zone=$zone --quiet # Delete all disks in a zone
+gcloud compute disks list --filter="zone:us-central1-c" --format="value(NAME)" | xargs -I {} gcloud compute disks delete {} --zone=us-central1-c --quiet # Delete all disks in a zone
 ```
 
 - kubernetes
@@ -155,9 +155,15 @@ kubectl get nodes # Get all nodes
 
 kubectl get pods # Get all pods
 
+kubectl get pods --all-namespaces # Get all pods in all namespaces
+
+kubectl get pods --all-namespaces -o wide # Get all pods in all namespaces with more information
+
 kubectl get deployments # Get all deployments
 
 kubectl get services # Get all services
+
+kubectl get services --all-namespaces -o wide # Get all services in all namespaces with more information
 
 kubectl get pvc # Get all persistent volume claims
 
@@ -172,6 +178,36 @@ kubectl delete pvc <pvc-name> # Delete a persistent volume claim
 kubectl logs <pod-name> # Get the logs of a pod
 
 kubectl cp /home/elias/disney_bitconnect.mp4 default/jellyfin-79747bf6c7-wx7nj:/media/disney_bitconnect.mp4 # Copy a file to a pod in a container
+```
+
+### 📦Extra: Deploy and Access the Kubernetes Dashboard
+
+- Refer to the following link for more information: [Kubernetes Dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
+
+
+- Get GitHub Repository
+```bash
+git clone https://github.com/EliasDeHondt/kubernetes-dashboard.git
+```
+
+- Deploy the Kubernetes Dashboard
+```bash
+kubectl apply -f ./kubernetes-dashboard
+# To delete the Kubernetes Dashboard
+kubectl delete -f ./kubernetes-dashboard
+```
+
+- Access the Kubernetes Dashboard
+```bash
+kubectl -n kubernetes-dashboard get svc # Get the service of the Kubernetes Dashboard
+# Open the in
+```
+
+- Access the Kubernetes Dashboard Token
+```bash
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+# Copy the token
+# Paste the token in the Kubernetes Dashboard
 ```
 
 ## 🔗Links
