@@ -112,7 +112,6 @@ function get_credentials() { # Step 4
 
 # Functie: Deploy the application.
 function deploy_application() { # Step 5
-  kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.9.1/cert-manager.yaml >./deployment-script.log 2>&1
   kubectl apply -f ./application.yaml >./deployment-script.log 2>&1
 
   local EXIT_CODE=$?

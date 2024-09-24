@@ -43,7 +43,6 @@ function get_credentials() { # Step 4
 
 function delete_deployment() {
   kubectl delete -f ./application.yaml
-  kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v1.9.1/cert-manager.yaml
 
   if [ $? -eq 0 ]; then success "Deployment deleted successfully."; else error_exit "Failed to delete the deployment."; fi
 }
