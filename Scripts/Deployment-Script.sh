@@ -28,10 +28,15 @@ function success() {
 
 # Spinner function
 function spinner() {
-  local pid=$1
+  local message=$1
+  local pid=$2
   local delay=0.1
   local spinstr='|/-\'
-  while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+
+  echo
+  echo "$message" # Display the message
+  echo            # Newline
+  while kill -0 "$pid" 2>/dev/null; do
     local temp=${spinstr#?}
     printf " [%c]  " "$spinstr"
     spinstr=$temp${spinstr%"$temp"}
@@ -63,6 +68,12 @@ function check_gcloud_installation() { # Step 1
 # Functie: Enable the required APIs.
 function enable_apis() { # Step 2
   gcloud services enable container.googleapis.com >./deployment-script.log 2>&1
+
+  # add a spinner while loading
+  local CLUSTER_CREATION_PID=$!
+  spinner "enabling APIs" $CLUSTER_CREATION_PID
+  wait $CLUSTER_CREATION_PID
+
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then success "APIs enabled successfully."; else error_exit "Failed to enable the APIs."; fi
@@ -72,7 +83,7 @@ function enable_apis() { # Step 2
 function create_cluster() {
   # Check if the cluster already exists
   if gcloud container clusters describe "$cluster_name" --region="$zone" >/dev/null 2>&1; then
-    echo "Cluster '$cluster_name' already exists, skipping creation."
+    printf "\nCluster '$cluster_name' already exists, skipping creation.\n"
     return 0
   fi
 
@@ -87,14 +98,11 @@ function create_cluster() {
     --disk-size=20GB \
     --enable-autoscaling >./deployment-script.log 2>&1 &
 
-  # Get the process ID of the cluster creation
+  # add a spinner while loading
   local CLUSTER_CREATION_PID=$!
-
-  # Run the spinner while the cluster is being created
-  spinner $CLUSTER_CREATION_PID
-
-  # Wait for the process to complete
+  spinner "Creating the kubernetes cluster " $CLUSTER_CREATION_PID
   wait $CLUSTER_CREATION_PID
+
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then
@@ -116,6 +124,12 @@ function get_credentials() { # Step 4
 function deploy_application() { # Step 5
   kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.9.1/cert-manager.yaml >./deployment-script.log 2>&1
   kubectl apply -f ./application.yaml >./deployment-script.log 2>&1
+
+  # add a spinner while loading
+  local CLUSTER_CREATION_PID=$!
+  spinner "Deploying application " $CLUSTER_CREATION_PID
+  wait $CLUSTER_CREATION_PID
+
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then success "Application deployed successfully."; else error_exit "Failed to deploy the application."; fi
@@ -140,6 +154,12 @@ function copy_test_data() { # Step 6
 
   # Copy the media files to the Jellyfin pod
   kubectl cp ../Media/ default/$POD_NAME:/media/
+
+  # add a spinner while loading
+  local CLUSTER_CREATION_PID=$!
+  spinner "Copying test data " $CLUSTER_CREATION_PID
+  wait $CLUSTER_CREATION_PID
+
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then
