@@ -1,13 +1,16 @@
-############################
-# @author Elias De Hondt   #
-# @see https://eliasdh.com #
-# @since 24/09/2024        #
-############################
+############################################################
+# @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
+# @see https://eliasdh.com                                 #
+# @since 18/09/2024                                        #
+############################################################
+
+# Namespace for Kubernetes Dashboard
 apiVersion: v1
 kind: Namespace
 metadata:
   name: kubernetes-dashboard
 ---
+# Kubernetes Dashboard ServiceAccount
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -16,6 +19,7 @@ metadata:
   name: kubernetes-dashboard
   namespace: kubernetes-dashboard
 ---
+# Kubernetes Dashboard Service
 kind: Service
 apiVersion: v1
 metadata:
@@ -24,13 +28,14 @@ metadata:
   name: kubernetes-dashboard
   namespace: kubernetes-dashboard
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 443
       targetPort: 8443
   selector:
     k8s-app: kubernetes-dashboard
 ---
+# Kubernetes Dashboard Secrets (Certificates and CSRF)
 apiVersion: v1
 kind: Secret
 metadata:
@@ -60,6 +65,7 @@ metadata:
   namespace: kubernetes-dashboard
 type: Opaque
 ---
+# ConfigMap for Kubernetes Dashboard Settings
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -68,6 +74,7 @@ metadata:
   name: kubernetes-dashboard-settings
   namespace: kubernetes-dashboard
 ---
+# RBAC Roles and RoleBindings for Kubernetes Dashboard
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -77,22 +84,14 @@ metadata:
   namespace: kubernetes-dashboard
 rules:
   - apiGroups: [""]
-    resources: ["secrets"]
-    resourceNames: ["kubernetes-dashboard-key-holder", "kubernetes-dashboard-certs", "kubernetes-dashboard-csrf"]
+    resources: ["secrets", "configmaps"]
+    resourceNames:
+      - "kubernetes-dashboard-key-holder"
+      - "kubernetes-dashboard-certs"
+      - "kubernetes-dashboard-csrf"
     verbs: ["get", "update", "delete"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    resourceNames: ["kubernetes-dashboard-settings"]
-    verbs: ["get", "update"]
-  - apiGroups: [""]
-    resources: ["services"]
-    resourceNames: ["heapster", "dashboard-metrics-scraper"]
-    verbs: ["proxy"]
-  - apiGroups: [""]
-    resources: ["services/proxy"]
-    resourceNames: ["heapster", "http:heapster:", "https:heapster:", "dashboard-metrics-scraper", "http:dashboard-metrics-scraper"]
-    verbs: ["get"]
 ---
+# ClusterRole and ClusterRoleBinding for Kubernetes Dashboard
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -104,24 +103,8 @@ rules:
     resources: ["pods", "nodes"]
     verbs: ["get", "list", "watch"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    k8s-app: kubernetes-dashboard
-  name: kubernetes-dashboard
-  namespace: kubernetes-dashboard
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kubernetes-dashboard
-subjects:
-  - kind: ServiceAccount
-    name: kubernetes-dashboard
-    namespace: kubernetes-dashboard
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: kubernetes-dashboard
 roleRef:
@@ -133,6 +116,7 @@ subjects:
     name: kubernetes-dashboard
     namespace: kubernetes-dashboard
 ---
+# Kubernetes Dashboard Deployment
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -142,7 +126,6 @@ metadata:
   namespace: kubernetes-dashboard
 spec:
   replicas: 1
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       k8s-app: kubernetes-dashboard
@@ -153,8 +136,7 @@ spec:
     spec:
       containers:
         - name: kubernetes-dashboard
-          image: kubernetesui/dashboard:v2.1.0
-          imagePullPolicy: Always
+          image: kubernetesui/dashboard:v2.5.1
           ports:
             - containerPort: 8443
               protocol: TCP
@@ -164,99 +146,43 @@ spec:
           volumeMounts:
             - name: kubernetes-dashboard-certs
               mountPath: /certs
-            - mountPath: /tmp
-              name: tmp-volume
-          livenessProbe:
-            httpGet:
-              scheme: HTTPS
-              path: /
-              port: 8443
-            initialDelaySeconds: 30
-            timeoutSeconds: 30
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            runAsUser: 1001
-            runAsGroup: 2001
+            - name: tmp-volume
+              mountPath: /tmp
       volumes:
         - name: kubernetes-dashboard-certs
           secret:
             secretName: kubernetes-dashboard-certs
         - name: tmp-volume
           emptyDir: {}
-      serviceAccountName: kubernetes-dashboard
-      nodeSelector:
-        "kubernetes.io/os": linux
-      tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
 ---
-kind: Service
-apiVersion: v1
+# Ingress for Kubernetes Dashboard
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  labels:
-    k8s-app: dashboard-metrics-scraper
-  name: dashboard-metrics-scraper
+  name: kubernetes-dashboard-ingress
   namespace: kubernetes-dashboard
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
-  ports:
-    - port: 8000
-      targetPort: 8000
-  selector:
-    k8s-app: dashboard-metrics-scraper
+  ingressClassName: nginx
+  rules:
+    - host: dashboard.nepfliks.kobelabs.online
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard
+                port:
+                  number: 443
+  tls:
+    - hosts:
+        - dashboard.nepfliks.kobelabs.online
+      secretName: k8-dashboard-tls-production
 ---
-kind: Deployment
-apiVersion: apps/v1
-metadata:
-  labels:
-    k8s-app: dashboard-metrics-scraper
-  name: dashboard-metrics-scraper
-  namespace: kubernetes-dashboard
-spec:
-  replicas: 1
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      k8s-app: dashboard-metrics-scraper
-  template:
-    metadata:
-      labels:
-        k8s-app: dashboard-metrics-scraper
-      annotations:
-        seccomp.security.alpha.kubernetes.io/pod: 'runtime/default'
-    spec:
-      containers:
-        - name: dashboard-metrics-scraper
-          image: kubernetesui/metrics-scraper:v1.0.6
-          ports:
-            - containerPort: 8000
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              scheme: HTTP
-              path: /
-              port: 8000
-            initialDelaySeconds: 30
-            timeoutSeconds: 30
-          volumeMounts:
-          - mountPath: /tmp
-            name: tmp-volume
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            runAsUser: 1001
-            runAsGroup: 2001
-      serviceAccountName: kubernetes-dashboard
-      nodeSelector:
-        "kubernetes.io/os": linux
-      tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
-      volumes:
-        - name: tmp-volume
-          emptyDir: {}
----
-# Allow External Connections
+# Let's Encrypt ClusterIssuer for Dashboard
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -264,37 +190,10 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: elias.dehondt@outlook.com
+    email: wijnantskobe28@gmail.com
     privateKeySecretRef:
       name: k8-dashboard-tls-production
     solvers:
-    - http01:
-        ingress:
-          class: nginx
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:    
-    cert-manager.io/cluster-issuer: letsencrypt
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-  name: dashboard-api-ingress
-  namespace: kubernetes-dashboard
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: test.eliasdh.com
-      http:
-        paths:
-        - path: /          
-          pathType: Prefix
-          backend:
-            service:
-              name: kubernetes-dashboard
-              port:
-                number: 443
-  tls:
-    - hosts:
-        - test.eliasdh.com
-      secretName: k8-dashboard-tls-production
----
+      - http01:
+          ingress:
+            class: nginx

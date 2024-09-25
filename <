@@ -38,9 +38,12 @@ function check_gcloud_installation() { # Step 1
 function enable_apis() { # Step 2
   gcloud services enable container.googleapis.com gkehub.googleapis.com containeranalysis.googleapis.com >./deployment-script.log 2>&1 &
 
-  # ANIMATION
   local GCLOUD_PID=$!
+
+  # Call the loading animation with the PID
   loading_icon "Enabling APIs..." $GCLOUD_PID
+
+  # Wait for the gcloud command to finish
   wait $GCLOUD_PID
   local EXIT_CODE=$?
 
@@ -65,9 +68,12 @@ function create_cluster() {
     --disk-size=20GB \
     --enable-autoscaling >./deployment-script.log 2>&1 &
 
-  # ANIMATION
   local GCLOUD_PID=$!
+
+  # Call the loading animation with the PID
   loading_icon "Creating cluster..." $GCLOUD_PID
+
+  # Wait for the gcloud command to finish
   wait $GCLOUD_PID
   local EXIT_CODE=$?
 
@@ -80,11 +86,13 @@ function create_cluster() {
 
 # Functie: Get authentication credentials for the cluster.
 function get_credentials() { # Step 4
-  gcloud container clusters get-credentials $cluster_name --region=$zone >./deployment-script.log 2>&1 &
-
-  # ANIMATION
+  gcloud container clusters get-credentials $cluster_name --region=$zone >./deployment-script.log 2>&1
   local GCLOUD_PID=$!
+
+  # Call the loading animation with the PID
   loading_icon "Capturing kubernetes credentials..." $GCLOUD_PID
+
+  # Wait for the gcloud command to finish
   wait $GCLOUD_PID
   local EXIT_CODE=$?
 
@@ -93,14 +101,14 @@ function get_credentials() { # Step 4
 
 # Functie: Deploy the application.
 function deploy_application() { # Step 5
+  kubectl apply -f ./app-deployment.yaml
+  if [ $? -eq 0 ]; then success "app-deployment.yaml deployed successfully."; else error_exit "Failed to deploy app-deployment.yaml"; fi
+
   kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
   if [ $? -eq 0 ]; then success "cert-manager.yaml deployed successfully."; else error_exit "Failed to deploy the cert-manager.yaml"; fi
 
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
   if [ $? -eq 0 ]; then success "ingress-nginx deployed successfully."; else error_exit "Failed to deploy the ingress-nginx"; fi
-
-  kubectl apply -f ./app-deployment.yaml
-  if [ $? -eq 0 ]; then success "app-deployment.yaml deployed successfully."; else error_exit "Failed to deploy app-deployment.yaml"; fi
 }
 
 function deploy_dashboard() { # Step 6
@@ -126,7 +134,7 @@ function copy_test_data() { # Step 7
   done
 
   # Copy the media files to the Jellyfin pod
-  kubectl cp ../Media/ default/$POD_NAME:/media/ &
+  kubectl cp ../Media/ default/$POD_NAME:/media/
 
   #ANIMATION
   local GCLOUD_PID=$!

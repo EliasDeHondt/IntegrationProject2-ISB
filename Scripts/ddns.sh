@@ -3,6 +3,7 @@
 source ./config.sh
 
 ip=$1
+record_name=$2
 
 ###########################################
 ## Check if we have a public IP

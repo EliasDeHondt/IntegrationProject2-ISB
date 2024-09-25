@@ -5,12 +5,18 @@
 ############################################################
 # This is a yaml that will setup the whole kubernetes environment
 
+# Namespace for Jellyfin
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jellyfin
 ---
 # Config Storage (Jellyfin-WebApp)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: jellyfin-config-pvc
+  namespace: jellyfin
 spec:
   accessModes:
     - ReadWriteOnce
@@ -23,6 +29,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: jellyfin-media-pvc
+  namespace: jellyfin
 spec:
   accessModes:
     - ReadWriteOnce
@@ -35,6 +42,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jellyfin
+  namespace: jellyfin
 spec:
   replicas: 3
   selector:
@@ -76,6 +84,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
+  namespace: jellyfin
 spec:
   serviceName: "mysql"
   replicas: 3
@@ -103,7 +112,7 @@ spec:
             - containerPort: 3306
           volumeMounts:
             - name: mysql-data
-              mountPath: /var/lib/mysqljellyfin
+              mountPath: /var/lib/mysql
   volumeClaimTemplates:
     - metadata:
         name: mysql-data
@@ -113,14 +122,12 @@ spec:
           requests:
             storage: 10Gi
 ---
-# Application Service
+# Application Service (Jellyfin)
 apiVersion: v1
 kind: Service
 metadata:
   name: jellyfin
-  annotations:
-    cloud.google.com/neg: '{"ingress": true}'
-    networking.gke.io/managed-certificates: jellyfin-managed-cert
+  namespace: jellyfin
 spec:
   type: LoadBalancer
   ports:
@@ -140,6 +147,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql
+  namespace: jellyfin
 spec:
   clusterIP: None
   ports:
@@ -154,6 +162,7 @@ apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: jellyfin-hpa
+  namespace: jellyfin
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -163,4 +172,46 @@ spec:
   maxReplicas: 10
   targetCPUUtilizationPercentage: 70
 ---
-
+# Allow External Connections - Let's Encrypt ClusterIssuer
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+  namespace: jellyfin
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: wijnantskobe28@gmail.com
+    privateKeySecretRef:
+      name: k8-app-tls-production
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+---
+# Ingress for Jellyfin
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  name: jellyfin-ingress
+  namespace: jellyfin
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.nepfliks.kobelabs.online
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyfin
+                port:
+                  number: 8096
+  tls:
+    - hosts:
+        - app.nepfliks.kobelabs.online
+      secretName: k8-app-tls-production
