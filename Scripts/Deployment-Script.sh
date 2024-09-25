@@ -1,8 +1,8 @@
-############################
-# @author Elias De Hondt   #
-# @see https://eliasdh.com #
-# @since 18/09/2024        #
-############################
+############################################################
+# @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
+# @see https://eliasdh.com                                 #
+# @since 18/09/2024                                        #
+############################################################
 # This script will create a kubernetes cluster and deploy a:
 # Application: Jellyfin
 # Database: MySQL

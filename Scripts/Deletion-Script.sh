@@ -1,3 +1,13 @@
+############################################################
+# @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
+# @see https://eliasdh.com                                 #
+# @since 18/09/2024                                        #
+############################################################
+# This script will create a kubernetes cluster and deploy a:
+# Application: Jellyfin
+# Database: MySQL
+# Storage: Persistent Volume Claims
+
 # UI variables
 reset="\e[0m"    # Reset
 red="\e[0;31m"   # Red

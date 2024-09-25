@@ -1,12 +1,9 @@
-############################
-# @author Elias De Hondt   #
-# @see https://eliasdh.com #
-# @since 18/09/2024        #
-############################
-# This yaml will deploy a Jellyfin application with a MySQL database
-# Application: Jellyfin
-# Database: MySQL
-# Storage: Persistent Volume Claims
+############################################################
+# @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
+# @see https://eliasdh.com                                 #
+# @since 18/09/2024                                        #
+############################################################
+# This is a yaml that will setup the whole kubernetes environment
 
 ---
 # Config Storage (Jellyfin-WebApp)

@@ -1,4 +1,5 @@
 ![logo](https://eliasdh.com/assets/media/images/logo-github.png)
+
 # 💙🤍Manual🤍💙
 
 ## 📘Table of Contents
@@ -7,12 +8,12 @@
 2. [🖖Introduction](#🖖introduction)
 3. [📚Expleanation](#📚expleanation)
 4. [✨Steps](#✨steps)
-    1. [👉Step 0: Preparations](#👉step-0-preparations)
-    2. [👉Step 1: Set Up The Google Cloud Environment](#👉step-1-set-up-the-google-cloud-environment)
-    3. [👉Step 2: Clone The GitHub Repository](#👉step-2-clone-the-github-repository)
-    4. [👉Step 3: Run The Script](#👉step-3-run-the-script)
+   1. [👉Step 0: Preparations](#👉step-0-preparations)
+   2. [👉Step 1: Set Up The Google Cloud Environment](#👉step-1-set-up-the-google-cloud-environment)
+   3. [👉Step 2: Clone The GitHub Repository](#👉step-2-clone-the-github-repository)
+   4. [👉Step 3: Run The Script](#👉step-3-run-the-script)
 5. [📦Extra](#📦extra)
-    1. [📦Extra: Troubleshooting](#📦extra-troubleshooting)
+   1. [📦Extra: Troubleshooting](#📦extra-troubleshooting)
 6. [🔗Links](#🔗links)
 
 ---
@@ -31,53 +32,64 @@ Door deze handleiding te volgen, ben je in staat om een schaalbaar en robuust vi
 
 **Project Description: Jellyfin Streaming Platform**
 
-1. ***Introduction***
-    - Dit project richt zich op het opzetten van een streamingplatform voor video's, gebruikmakend van de open-source Jellyfin mediaserver. Het platform is geconfigureerd binnen een Kubernetes-cluster en maakt gebruik van een MySQL-database voor gegevensopslag en persistentie. De gekozen technologieën zorgen voor schaalbaarheid, hoge beschikbaarheid en beveiliging.
+1. **_Introduction_**
 
-2. ***Technologieën***
-    - Jellyfin:
-        - Open-source mediaserver voor het streamen van video's.
-        - Jellyfin werkt via HTTP op poort 8096 en wordt toegankelijk gemaakt via een LoadBalancer-service op poorten 80 (HTTP) en 443 (HTTPS).
+   - Dit project richt zich op het opzetten van een streamingplatform voor video's, gebruikmakend van de open-source Jellyfin mediaserver. Het platform is geconfigureerd binnen een Kubernetes-cluster en maakt gebruik van een MySQL-database voor gegevensopslag en persistentie. De gekozen technologieën zorgen voor schaalbaarheid, hoge beschikbaarheid en beveiliging.
 
-    - MySQL:
-        - Relationale database die gebruikersgegevens en metadata beheert.
-        - Geconfigureerd als een StatefulSet met ondersteuning voor master-slave replicatie.
-        - MySQL communiceert met Jellyfin via interne Kubernetes-services op poort 3306.
+2. **_Technologieën_**
 
-    - Kubernetes:
-        - Orkestreert de containers van Jellyfin en MySQL, beheert de schaalbaarheid en de levenscyclus van de applicaties.
-        - Persistent Volume Claims (PVC's) worden gebruikt om dataopslag voor zowel Jellyfin- als MySQL-gegevens te garanderen.
+   - Jellyfin:
 
-    - Persistent Storage:
-        - PVC's garanderen data-integriteit en persistentie voor zowel de configuratie- en mediagegevens van Jellyfin als de gegevensopslag van MySQL.
+     - Open-source mediaserver voor het streamen van video's.
+     - Jellyfin werkt via HTTP op poort 8096 en wordt toegankelijk gemaakt via een LoadBalancer-service op poorten 80 (HTTP) en 443 (HTTPS).
 
-    - Horizontal Pod Autoscaler (HPA):
-        - Automatiseert de schaalvergroting van de Jellyfin-deployment op basis van CPU-gebruik. Het minimum aantal replicas is 1 en het maximum 10.
+   - MySQL:
 
-3. ***Communicatie tussen Technologieën***
-    - Jellyfin ontvangt mediaverzoeken van gebruikers en slaat deze op in de MySQL-database.
-    - MySQL is toegankelijk via een headless service, waardoor communicatie tussen pods zonder specifieke IP-adressen mogelijk is.
-    - De applicaties communiceren binnen het Kubernetes-cluster, wat latentie vermindert en efficiëntie verhoogt.
+     - Relationale database die gebruikersgegevens en metadata beheert.
+     - Geconfigureerd als een StatefulSet met ondersteuning voor master-slave replicatie.
+     - MySQL communiceert met Jellyfin via interne Kubernetes-services op poort 3306.
 
-4. ***Beveiliging***
-    - Databasewachtwoorden en configuratie-instellingen worden beheerd via omgevingsvariabelen om te voorkomen dat gevoelige informatie hardcoded in containers wordt opgeslagen.
-    - Gebruikerscommunicatie met Jellyfin verloopt via HTTPS om gegevens tijdens overdracht te versleutelen.
+   - Kubernetes:
 
-5. ***Redundantie en Beschikbaarheid***
-    - StatefulSet-configuratie van MySQL biedt redundantie via master-slave replicatie om gegevensintegriteit te waarborgen.
-    - Jellyfin's HPA en meerdere replicas waarborgen beschikbaarheid bij pieken in het verkeer.
+     - Orkestreert de containers van Jellyfin en MySQL, beheert de schaalbaarheid en de levenscyclus van de applicaties.
+     - Persistent Volume Claims (PVC's) worden gebruikt om dataopslag voor zowel Jellyfin- als MySQL-gegevens te garanderen.
 
-6. ***Positieve Aspecten***
-    - Schaalbaarheid: Het systeem kan eenvoudig worden opgeschaald met toenemende gebruikersvraag.
-    - Open Source: Gebruik van open-source technologieën minimaliseert licentiekosten en biedt flexibiliteit voor maatwerk.
-    - Hoge Beschikbaarheid: Kubernetes en StatefulSets zorgen voor een betrouwbare en robuuste infrastructuur.
+   - Persistent Storage:
 
-7. ***Negatieve Aspecten***
-    - Complexiteit: Beheer van Kubernetes vereist expertise en kan een hogere leercurve vergen.
-    - Kosten: Schalen van applicaties kan afhankelijk van de cloudprovider resulteren in hogere kosten.
+     - PVC's garanderen data-integriteit en persistentie voor zowel de configuratie- en mediagegevens van Jellyfin als de gegevensopslag van MySQL.
 
-8. ***Conclusie***
-    - Dit project biedt een krachtige basis voor het opzetten van een schaalbaar, veilig video streaming platform met Jellyfin, MySQL en Kubernetes. Met goede monitoring en beheer kan deze architectuur voldoen aan zowel huidige als toekomstige gebruikersbehoeften.
+   - Horizontal Pod Autoscaler (HPA):
+     - Automatiseert de schaalvergroting van de Jellyfin-deployment op basis van CPU-gebruik. Het minimum aantal replicas is 1 en het maximum 10.
+
+3. **_Communicatie tussen Technologieën_**
+
+   - Jellyfin ontvangt mediaverzoeken van gebruikers en slaat deze op in de MySQL-database.
+   - MySQL is toegankelijk via een headless service, waardoor communicatie tussen pods zonder specifieke IP-adressen mogelijk is.
+   - De applicaties communiceren binnen het Kubernetes-cluster, wat latentie vermindert en efficiëntie verhoogt.
+
+4. **_Beveiliging_**
+
+   - Databasewachtwoorden en configuratie-instellingen worden beheerd via omgevingsvariabelen om te voorkomen dat gevoelige informatie hardcoded in containers wordt opgeslagen.
+   - Gebruikerscommunicatie met Jellyfin verloopt via HTTPS om gegevens tijdens overdracht te versleutelen.
+
+5. **_Redundantie en Beschikbaarheid_**
+
+   - StatefulSet-configuratie van MySQL biedt redundantie via master-slave replicatie om gegevensintegriteit te waarborgen.
+   - Jellyfin's HPA en meerdere replicas waarborgen beschikbaarheid bij pieken in het verkeer.
+
+6. **_Positieve Aspecten_**
+
+   - Schaalbaarheid: Het systeem kan eenvoudig worden opgeschaald met toenemende gebruikersvraag.
+   - Open Source: Gebruik van open-source technologieën minimaliseert licentiekosten en biedt flexibiliteit voor maatwerk.
+   - Hoge Beschikbaarheid: Kubernetes en StatefulSets zorgen voor een betrouwbare en robuuste infrastructuur.
+
+7. **_Negatieve Aspecten_**
+
+   - Complexiteit: Beheer van Kubernetes vereist expertise en kan een hogere leercurve vergen.
+   - Kosten: Schalen van applicaties kan afhankelijk van de cloudprovider resulteren in hogere kosten.
+
+8. **_Conclusie_**
+   - Dit project biedt een krachtige basis voor het opzetten van een schaalbaar, veilig video streaming platform met Jellyfin, MySQL en Kubernetes. Met goede monitoring en beheer kan deze architectuur voldoen aan zowel huidige als toekomstige gebruikersbehoeften.
 
 ## ✨Steps
 
@@ -85,46 +97,47 @@ Door deze handleiding te volgen, ben je in staat om een schaalbaar en robuust vi
 
 - Install the Google Cloud CLI [Instructions GCloud CLI](https://github.com/EliasDH-com/Documentation/blob/main/Documentation/Instructions-GCloud-CLI.md)
 
-
 ### 👉Step 1: Set Up The Google Cloud Environment
 
 - Type the following command to initialize the Google Cloud CLI
-    ```bash
-    gcloud init
-    ```
+  ```bash
+  gcloud init
+  ```
 - Press `1` to log in with your Google account.
 - Select your Google account.
 - The step for selecting a project is not required `CTRL+C` to skip.
 - Type the following command to install the Google Cloud package for Kubernetes
-    ```bash
-    sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
-    ```
+  ```bash
+  sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+  ```
 
 ### 👉Step 2: Clone The GitHub Repository
 
 - Type the following command to clone the GitHub repository
-    ```bash
-    git clone https://github.com/EliasDeHondt/IntegrationProject2.git
-    ```
+
+  ```bash
+  git clone https://github.com/EliasDeHondt/IntegrationProject2.git
+  ```
 
 - Change the directory to the repository
-    ```bash
-    cd IntegrationProject2/Scripts
-    ```
+  ```bash
+  cd IntegrationProject2/Scripts
+  ```
 
 ### 👉Step 3: Run The Script
 
 - Type the following command to run the script
-    ```bash
-    chmod +x Deployment-Script-IaC.sh
-    ./Deployment-Script-IaC.sh
-    ```
+  ```bash
+  chmod +x Deployment-Script-IaC.sh
+  ./Deployment-Script-IaC.sh
+  ```
 
 ## 📦Extra
 
 ### 📦Extra: Troubleshooting
 
 - Gcloud
+
 ```bash
 gcloud init # Initialize gcloud
 
@@ -144,6 +157,7 @@ gcloud compute disks list --filter="zone:us-central1-c" --format="value(NAME)" |
 ```
 
 - kubernetes
+
 ```bash
 kubectl top nodes # Get the usage of all nodes
 
@@ -184,31 +198,35 @@ kubectl cp /home/elias/disney_bitconnect.mp4 default/jellyfin-79747bf6c7-wx7nj:/
 
 - Refer to the following link for more information: [Kubernetes Dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
 
-
 - Get GitHub Repository
+
 ```bash
 git clone https://github.com/EliasDeHondt/kubernetes-dashboard.git
 ```
 
 - Install Cert-Manager
+
 ```bash
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 ```
 
 - Deploy the Kubernetes Dashboard
+
 ```bash
 kubectl apply -f ./kubernetes-dashboard/Scripts
 # Please modify the necessary configuration files to switch to your domain name.
 ```
 
 - Access the Kubernetes Dashboard
+
 ```bash
 kubectl get services -o wide -n ingress-nginx
 # Copy the external IP address and put it in your A of AAAA record for your domain name.
 ```
 
 - Access the Kubernetes Dashboard Token
+
 ```bash
 sudo chmod +x ./kubernetes-dashboard/Scripts/get-token.sh
 sudo ./kubernetes-dashboard/Scripts/get-token.sh
@@ -217,6 +235,7 @@ sudo ./kubernetes-dashboard/Scripts/get-token.sh
 ```
 
 - Delete all configurations
+
 ```bash
 # To delete the Kubernetes Dashboard
 kubectl delete -f ./kubernetes-dashboard/Scripts
@@ -226,5 +245,7 @@ kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/mai
 ```
 
 ## 🔗Links
+
 - 👯 Web hosting company [EliasDH.com](https://eliasdh.com).
 - 📫 How to reach us elias.dehondt@outlook.com
+
