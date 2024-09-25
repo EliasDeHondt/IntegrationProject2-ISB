@@ -78,7 +78,7 @@ function delete_deployment() {
   local error_count=$?
   kubectl delete -f ./managed-cert.yaml
   local error_count=$(($error_count + $?))
-  kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/gke-managed-certs/main/deploy/managedcertificates-crd.yaml
+  kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/gke-managed-certs/refs/heads/master/deploy/managedcertificates-crd.yaml
   local error_count=$(($error_count + $?))
 
   if [ $error_count -eq 0 ]; then success "Application deleted successfully."; else error_exit "Failed to delete the application."; fi

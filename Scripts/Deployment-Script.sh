@@ -92,7 +92,7 @@ function get_credentials() { # Step 4
 
 # Functie: Deploy the application.
 function deploy_application() { # Step 5
-  kubectl apply -f ./application.yaml
+  kubectl apply -f ./app-deployment.yaml
   local error_count=$?
   kubectl apply -f ./managed-cert.yaml
   local error_count=$(($error_count + $?))
@@ -102,8 +102,12 @@ function deploy_application() { # Step 5
   if [ $error_count -eq 0 ]; then success "Application deployed successfully."; else error_exit "Failed to deploy the application."; fi
 }
 
+function deploy_dashboard() { # Step 6
+
+}
+
 # Functie: Copy test data to volume.
-function copy_test_data() { # Step 6
+function copy_test_data() { # Step 7
   # Wait until the pod is running
   echo "Waiting for Jellyfin pod to be ready..."
 
@@ -133,7 +137,7 @@ function copy_test_data() { # Step 6
 
 # Functie: Set up SSL certificates for domain (For the load balancer external IP).
 # Get the IP address of the load balancer
-function setup_ssl_dns_certificates() { # Step 7
+function setup_ssl_dns_certificates() { # Step 8
   LOAD_BALANCER_IP=$(gcloud compute forwarding-rules list --format="value(IPAddress)" --limit=1)
   success "Load balancer IP: $LOAD_BALANCER_IP"
   ./ddns.sh "$LOAD_BALANCER_IP"
@@ -159,8 +163,9 @@ function main() {
   create_cluster              # Step 3
   get_credentials             # Step 4
   deploy_application          # Step 5
-  copy_test_data              # Step 6
-  setup_ssl_dns_certificates  # Step 7
+  deploy_dashboard            # Step 6
+  copy_test_data              # Step 7
+  setup_ssl_dns_certificates  # Step 8
 }
 
 main # Start the script.
