@@ -91,53 +91,84 @@ function get_credentials() { # Step 4
   if [ $EXIT_CODE -eq 0 ]; then success "Credentials retrieved successfully."; else error_exit "Failed to retrieve the credentials."; fi
 }
 
-# Functie: Deploy the application.
-function deploy_application() { # Step 5
+# Function: Deploy the application.
+function deploy_application() {
+  # Step 1: Create namespaces if they don't exist.
+  kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
+  kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
+
+  # Step 2: Deploy cert-manager.
   kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
-  if [ $? -eq 0 ]; then success "cert-manager.yaml deployed successfully."; else error_exit "Failed to deploy the cert-manager.yaml"; fi
+  if [ $? -eq 0 ]; then
+    success "cert-manager.yaml deployed successfully."
+  else
+    error_exit "Failed to deploy cert-manager.yaml"
+  fi
 
+  # Wait for cert-manager to be ready.
+  kubectl wait --namespace cert-manager --for=condition=ready pod --selector=app.kubernetes.io/instance=cert-manager --timeout=120s
+
+  # Step 3: Deploy NGINX Ingress Controller.
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-  if [ $? -eq 0 ]; then success "ingress-nginx deployed successfully."; else error_exit "Failed to deploy the ingress-nginx"; fi
+  if [ $? -eq 0 ]; then
+    success "ingress-nginx deployed successfully."
+  else
+    error_exit "Failed to deploy ingress-nginx"
+  fi
 
+  # Wait for NGINX Ingress Controller to be ready.
+  kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=120s
+
+  # Step 4: Deploy the app.
   kubectl apply -f ./app-deployment.yaml
-  if [ $? -eq 0 ]; then success "app-deployment.yaml deployed successfully."; else error_exit "Failed to deploy app-deployment.yaml"; fi
-}
+  if [ $? -eq 0 ]; then
+    success "app-deployment.yaml deployed successfully."
+  else
+    error_exit "Failed to deploy app-deployment.yaml"
+  fi
 
-function deploy_dashboard() { # Step 6
+  # Step 5: Deploy the Kubernetes Dashboard.
   kubectl apply -f ./dash-deployment.yaml
-  if [ $? -eq 0 ]; then success "dash-deployment.yaml deployed successfully."; else error_exit "Failed to deploy the dash-deployment.yaml"; fi
+  if [ $? -eq 0 ]; then
+    success "dash-deployment.yaml deployed successfully."
+  else
+    error_exit "Failed to deploy dash-deployment.yaml"
+  fi
 }
 
 # Functie: Copy test data to volume.
 function copy_test_data() { # Step 7
-  # Wait until the pod is running
+  # Wait until the Jellyfin pod is running
   echo "Waiting for Jellyfin pod to be ready..."
 
-  while true; do
-    POD_NAME=$(kubectl get pods -l app=jellyfin -o jsonpath="{.items[0].metadata.name}" --field-selector=status.phase=Running 2>/dev/null)
+  # Wait for the Jellyfin deployment to be available
+  if ! kubectl wait --for=condition=available --timeout=60s deployment/jellyfin -n jellyfin; then
+    error_exit "Jellyfin deployment did not become available in time."
+  fi
 
-    if [ -n "$POD_NAME" ]; then
-      echo "Jellyfin pod is running: $POD_NAME"
-      break
+  # Retrieve the pod name
+  POD_NAME=$(kubectl get pods -l app=jellyfin -o jsonpath="{.items[0].metadata.name}" --field-selector=status.phase=Running -n jellyfin)
+
+  # Check if the POD_NAME is empty
+  if [ -n "$POD_NAME" ]; then
+    echo "Jellyfin pod is running: $POD_NAME"
+
+    # Copy the media files to the Jellyfin pod
+    kubectl cp ../Media/ jellyfin/$POD_NAME:/media/ &
+
+    # ANIMATION
+    local GCLOUD_PID=$!
+    loading_icon "Copying media to the media volume..." $GCLOUD_PID
+    wait $GCLOUD_PID
+    local EXIT_CODE=$?
+
+    if [ $EXIT_CODE -eq 0 ]; then
+      success "Test data copied successfully."
     else
-      echo "Pod not ready, retrying in 5 seconds..."
-      sleep 5
+      error_exit "Failed to copy the test data."
     fi
-  done
-
-  # Copy the media files to the Jellyfin pod
-  kubectl cp ../Media/ default/$POD_NAME:/media/ &
-
-  #ANIMATION
-  local GCLOUD_PID=$!
-  loading_icon "Copying medie to the media volume..." $GCLOUD_PID
-  wait $GCLOUD_PID
-  local EXIT_CODE=$?
-
-  if [ $EXIT_CODE -eq 0 ]; then
-    success "Test data copied successfully."
   else
-    error_exit "Failed to copy the test data."
+    error_exit "No running Jellyfin pod found."
   fi
 }
 
@@ -167,7 +198,6 @@ function main() {
   create_cluster              # Step 3
   get_credentials             # Step 4
   deploy_application          # Step 5
-  deploy_dashboard            # Step 6
   copy_test_data              # Step 7
   setup_ssl_dns_certificates  # Step 8
 }

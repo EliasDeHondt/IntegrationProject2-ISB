@@ -3,10 +3,7 @@
 # @see https://eliasdh.com                                 #
 # @since 18/09/2024                                        #
 ############################################################
-# This script will create a kubernetes cluster and deploy a:
-# Application: Jellyfin
-# Database: MySQL
-# Storage: Persistent Volume Claims
+# Remove everything
 
 # Functie: Validate the external resources.
 function validate_external_resources() { # Step 0
@@ -55,12 +52,23 @@ function delete_cluster() {
   fi
 }
 
+function remove_disks() {
+  ./Remove-disks.sh
+
+  if [ $EXIT_CODE -eq 0 ]; then
+    success "Cluster deleted successfully."
+  else
+    error_exit "Failed to delete the cluster."
+  fi
+}
+
 # Start of the script.
 function main() {
   validate_external_resources # Step 0
   check_gcloud_installation   # Step 1
   get_credentials             # Step 2
   delete_cluster              # Step 3
+  remove_disks                # Step 4
 }
 
 main # Start the script.
