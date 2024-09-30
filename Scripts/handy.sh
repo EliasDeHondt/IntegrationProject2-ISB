@@ -1,5 +1,8 @@
-# COLORED Messages
-# UI variables
+#!/bin/bash
+############################################################
+# @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
+# @since 18/09/2024                                        #
+############################################################
 
 reset="\e[0m"    # Reset
 red="\e[0;31m"   # Red

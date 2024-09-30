@@ -177,6 +177,8 @@ kubectl get deployments # Get all deployments
 
 kubectl get services # Get all services
 
+kubectl get pods -n jellyfin # Get all pods in a namespace
+
 kubectl get services --all-namespaces -o wide # Get all services in all namespaces with more information
 
 kubectl get pvc # Get all persistent volume claims

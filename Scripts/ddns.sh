@@ -1,4 +1,8 @@
 #!/bin/bash
+############################################################
+# @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
+# @since 18/09/2024                                        #
+############################################################
 
 source ./config.sh
 

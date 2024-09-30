@@ -1,4 +1,8 @@
 #!/bin/bash
+############################################################
+# @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
+# @since 18/09/2024                                        #
+############################################################
 
 # Set your Google Cloud project ID
 PROJECT_ID="integrationproject2-elias"
