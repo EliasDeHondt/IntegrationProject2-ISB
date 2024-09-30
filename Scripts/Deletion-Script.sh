@@ -35,6 +35,21 @@ function get_credentials() { # Step 4
   if [ $EXIT_CODE -eq 0 ]; then success "Credentials retrieved successfully."; else error_exit "Failed to retrieve the credentials."; fi
 }
 
+function delete_deployment() {
+  kubectl delete namespaces --all --all-namespaces=true
+  kubectl delete all -all
+
+  kubectl delete clusterroles --all
+  kubectl delete clusterrolebindings --all
+  kubectl delete customresourcedefinitions --all
+
+  kubectl delete pvc --all
+  kubectl delete pv --all
+
+  kubectl delete configmaps --all
+  kubectl delete secrets --all
+}
+
 function delete_cluster() {
   # Start gcloud delete command in the background and get its PID
   gcloud container clusters delete "$cluster_name" --region="$zone" --quiet >./deployment-script.log 2>&1 &
@@ -64,11 +79,19 @@ function remove_disks() {
 
 # Start of the script.
 function main() {
-  validate_external_resources # Step 0
-  check_gcloud_installation   # Step 1
-  get_credentials             # Step 2
-  delete_cluster              # Step 3
-  remove_disks                # Step 4
+  validate_external_resources
+  check_gcloud_installation
+  get_credentials
+  echo "What would you like to delete? (cluster/deployment)"
+  read -r delete
+  if [ "$delete" == "cluster" ]; then
+    delete_cluster
+  elif [ "$delete" == "deployment" ]; then
+    delete_deployment
+  else
+    error_exit "Invalid input."
+  fi
+  remove_disks
 }
 
-main # Start the script.
+main "$@" # Start the script.
