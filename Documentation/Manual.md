@@ -128,8 +128,8 @@ Door deze handleiding te volgen, ben je in staat om een schaalbaar en robuust vi
 
 - Type the following command to run the script
   ```bash
-  chmod +x Deployment-Script-IaC.sh
-  ./Deployment-Script-IaC.sh
+  sudo chmod +x Deployment-Script.sh
+  ./Deployment-Script.sh
   ```
 
 ## 📦Extra
