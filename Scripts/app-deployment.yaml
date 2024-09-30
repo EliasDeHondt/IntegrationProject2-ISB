@@ -88,8 +88,8 @@ spec:
     app: jellyfin
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 8096
+      port: 443           # External Port (Ingress)
+      targetPort: 8096    # Internal Port (Jellyfin)
 ---
 # MySQL StatefulSet for Master-Slave Configuration
 apiVersion: apps/v1
@@ -186,7 +186,7 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP" # Traffic from Ingress to Service
   name: jellyfin-ingress
   namespace: jellyfin
 spec:
@@ -201,7 +201,7 @@ spec:
             service:
               name: jellyfin-service
               port:
-                number: 80
+                number: 443 # External Port (Ingress)
   tls:
     - hosts:
         - app.nepfliks.eliasdh.com
