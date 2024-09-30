@@ -147,6 +147,7 @@ function main() { # Main function
     get_credentials                     # Step 3
     deploy_jellyfin                     # Step 4
     deploy_dashboard                    # Step 5
+    sleep 60                            # Wait for the dashboard to be ready.
     copy_media_files                    # Step 6
     get_deployments                     # Step 7
     echo -e "****************************************"

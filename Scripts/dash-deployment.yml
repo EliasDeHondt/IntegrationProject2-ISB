@@ -284,7 +284,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: dash.nepfliks.eliasdh.com
+    - host: dashboard.nepfliks.eliasdh.com
       http:
         paths:
         - path: /
@@ -296,6 +296,6 @@ spec:
                 number: 443
   tls:
     - hosts:
-        - dash.nepfliks.eliasdh.com
+        - dashboard.nepfliks.eliasdh.com
       secretName: k8-dashboard-tls-production
 ---
