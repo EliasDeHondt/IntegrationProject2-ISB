@@ -41,9 +41,9 @@ function validate_environment() { # Step 0
 function enable_apis() { # Step 1
   echo -e "*\n* ${yellow}Step 1: Enabling the required APIs...${reset}\n*"
 
-  gcloud services enable compute.googleapis.com >./deployment-script.log 2>&1
+  gcloud services enable compute.googleapis.com > ./deployment-script.log 2>&1
   local EXIT_CODE=$?
-  gcloud services enable container.googleapis.com >./deployment-script.log 2>&1
+  gcloud services enable container.googleapis.com > ./deployment-script.log 2>&1
   EXIT_CODE=$((EXIT_CODE + $?))
 
   if [ $EXIT_CODE -eq 0 ]; then success "APIs enabled successfully."; else error_exit "Failed to enable the APIs."; fi
@@ -51,30 +51,31 @@ function enable_apis() { # Step 1
 
 # Functie: Get authentication credentials for the cluster.
 function get_credentials() { # Step 2
-  echo -e "*\n* ${yellow}Step 3: Getting authentication credentials for the cluster...${reset}\n*"
+  echo -e "*\n* ${yellow}Step 2: Getting authentication credentials for the cluster...${reset}\n*"
 
-  gcloud container clusters get-credentials $cluster_name --region=$zone >./deployment-script.log 2>&1
+  gcloud container clusters get-credentials $cluster_name --region=$zone > ./deployment-script.log 2>&1
   local EXIT_CODE=$?
 
   if [ $EXIT_CODE -eq 0 ]; then success "Credentials retrieved successfully."; else error_exit "Failed to retrieve the credentials."; fi
 }
 
+# Functie: Delete the kubernetes cluster.
 function delete_cluster() { # Step 3
   echo -e "*\n* ${yellow}Step 3: Deleting the Kubernetes cluster...${reset}\n*"
 
-  gcloud container clusters delete $cluster_name --region=$zone >./deployment-script.log 2>&1
+  # Delete the cluster in the specified region.
+  gcloud container clusters delete $cluster_name --region=$zone --quiet > ./deployment-script.log 2>&1
   local EXIT_CODE=$?
   if [ $EXIT_CODE -eq 0 ]; then success "Cluster deleted successfully."; else error_exit "Failed to delete the cluster."; fi
 }
 
+# Functie: Delete the disks.
 function delete_disks() { # Step 4
   echo -e "*\n* ${yellow}Step 4: Deleting the disks...${reset}\n*"
 
   local EXIT_CODE=0
-  for disk in $(gcloud compute disks list --filter="-users:*" --format="value(name,zone)"); do
-    disk_name=$(echo "$disk" | cut -d' ' -f1)
-    zone=$(echo "$disk" | cut -d' ' -f2)
-    gcloud compute disks delete "$disk_name" --zone="$zone" --quiet
+  for disk in $(gcloud compute disks list --format="value(name)"); do
+    gcloud compute disks delete $disk --zone=$zone --quiet > ./deployment-script.log 2>&1
     EXIT_CODE=$((EXIT_CODE + $?))
   done
 
