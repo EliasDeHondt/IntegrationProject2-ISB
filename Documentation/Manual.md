@@ -6,7 +6,7 @@
 
 1. [📘Table of Contents](#📘table-of-contents)
 2. [🖖Introduction](#🖖introduction)
-3. [📚Expleanation](#📚expleanation)
+3. [📚Explanation](#📚explanation)
 4. [✨Steps](#✨steps)
    1. [👉Step 0: Preparations](#👉step-0-preparations)
    2. [👉Step 1: Set Up The Google Cloud Environment](#👉step-1-set-up-the-google-cloud-environment)
@@ -29,7 +29,7 @@ Gedurende deze handleiding zul je onder andere ontdekken hoe je de Google Cloud-
 
 Door deze handleiding te volgen, ben je in staat om een schaalbaar en robuust video-streamingplatform te implementeren dat bestand is tegen verkeerspieken en ontworpen is voor hoge beschikbaarheid en beveiliging.
 
-## 📚Expleanation
+## 📚Explanation
 
 **Project Description: Jellyfin Streaming Platform**
 
@@ -267,4 +267,3 @@ kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/mai
 
 - 👯 Web hosting company [EliasDH.com](https://eliasdh.com).
 - 📫 How to reach us elias.dehondt@outlook.com
-
