@@ -12,9 +12,10 @@
    2. [👉Step 1: Set Up The Google Cloud Environment](#👉step-1-set-up-the-google-cloud-environment)
    3. [👉Step 2: Clone The GitHub Repository](#👉step-2-clone-the-github-repository)
    4. [👉Step 3: Run The Script](#👉step-3-run-the-script)
-5. [📦Extra](#📦extra)
+5. [📚Reference](#📚reference)
+6. [📦Extra](#📦extra)
    1. [📦Extra: Troubleshooting](#📦extra-troubleshooting)
-6. [🔗Links](#🔗links)
+7. [🔗Links](#🔗links)
 
 ---
 
@@ -131,6 +132,22 @@ Door deze handleiding te volgen, ben je in staat om een schaalbaar en robuust vi
   sudo chmod +x Deployment-Script.sh
   ./Deployment-Script.sh
   ```
+
+## 📚Reference
+
+- [Jellyfin](https://jellyfin.org/)
+- [MySQL](https://www.mysql.com/)
+- [Kubernetes](https://kubernetes.io/)
+- [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
+- [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+- [StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
+- [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)
+- [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+- [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
+- [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/)
+- [Pods](https://kubernetes.io/docs/concepts/workloads/pods/)
+- [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
+- [Services](https://kubernetes.io/docs/concepts/services-networking/service/)
 
 ## 📦Extra
 
