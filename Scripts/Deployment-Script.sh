@@ -31,7 +31,7 @@ function validate_environment() { # Step 0
     if [ ! -f ./dash-deployment.yml ]; then error_exit "The dash-deployment.yml file is missing."; fi
     if [ ! -f ./dash-service-account-admin.yml ]; then error_exit "The dash-service-account-admin.yml file is missing."; fi
     if [ ! -f ./dash-clusterRoleBinding-admin.yml ]; then error_exit "The dash-clusterRoleBinding-admin.yml file is missing."; fi
-    if [ -z "$(ls -A "./Media/")" ]; then error_exit "The Media directory is empty."; fi
+    if [ -z "$(ls -A "../Media/")" ]; then error_exit "The Media directory is empty."; fi
 
     # Check if the script is run using Bash.
     if [ -z "$BASH_VERSION" ]; then error_exit "This script must be run using Bash."; fi
