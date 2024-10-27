@@ -2,17 +2,25 @@
 # @author Elias De Hondt, Kobe Wijnants, Quinten Willekens #
 # @since 18/09/2024                                        #
 ############################################################
----
+
+# Defining the API version for Role-Based Access Control (RBAC) in Kubernetes.
 apiVersion: rbac.authorization.k8s.io/v1
+
+# Specifies the type of Kubernetes resource being created (ClusterRoleBinding).
 kind: ClusterRoleBinding
+
+# Metadata section - used to set a unique name for this ClusterRoleBinding object.
 metadata:
-  name: admin-user
+  name: admin-user  # Name of the ClusterRoleBinding, linking the admin-user to cluster-admin privileges.
+
+# roleRef section - defines the permissions assigned to the user or service account.
 roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io  # API group for RBAC.
+  kind: ClusterRole                    # Specifies that we are binding a ClusterRole.
+  name: cluster-admin                  # The name of the ClusterRole to be bound, granting full admin rights over the cluster.
+
+# subjects section - defines the specific user, group, or service account to receive these permissions.
 subjects:
-- kind: ServiceAccount
-  name: admin-user
-  namespace: kubernetes-dashboard
----
+- kind: ServiceAccount                 # Indicates this subject is a ServiceAccount.
+  name: admin-user                     # Name of the ServiceAccount being granted admin privileges.
+  namespace: kubernetes-dashboard      # The namespace where the admin-user ServiceAccount is located (specific to kubernetes-dashboard).
