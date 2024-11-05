@@ -119,7 +119,7 @@ function copy_media_files() { # Step 6
     echo -e "*\n* ${yellow}Step 6: Copying the media files to the persistent volume...${reset}\n*"
 
     local pod1name=$(kubectl get pods -n jellyfin -o jsonpath='{.items[0].metadata.name}')
-    kubectl cp ../Media/. jellyfin/$pod1name:/media/ > ./deployment-script.log 2>&1
+    kubectl cp ../Media/. jellyfin/jellyfin-79747bf6c7-6d27d:/media/ > ./deployment-script.log 2>&1
     local EXIT_CODE=$?
 
     if [ $EXIT_CODE -eq 0 ]; then success "Media files copied successfully."; else error_exit "Failed to copy the media files."; fi
