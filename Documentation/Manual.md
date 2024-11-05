@@ -203,15 +203,15 @@ kubectl get pvc # Get all persistent volume claims
 
 kubectl get pv # Get all persistent volumes
 
-kubectl apply -f ./application.yaml # Apply a yaml file
+kubectl apply -f ./app-deployment.yaml # Apply a yaml file
 
-kubectl delete -f ./application.yaml # Delete a yaml file
+kubectl delete -f ./app-deployment.yaml # Delete a yaml file
 
 kubectl delete pvc <pvc-name> # Delete a persistent volume claim
 
 kubectl logs <pod-name> # Get the logs of a pod
 
-kubectl cp /home/elias/disney_bitconnect.mp4 default/jellyfin-79747bf6c7-wx7nj:/media/disney_bitconnect.mp4 # Copy a file to a pod in a container
+kubectl cp ../Media/. jellyfin/cm-acme-http-solver-nljss:/media/ # Copy a file to a pod in a container
 ```
 
 ### 📦Extra: Deploy and Access the Kubernetes Dashboard
